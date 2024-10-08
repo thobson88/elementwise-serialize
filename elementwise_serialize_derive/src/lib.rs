@@ -34,16 +34,14 @@ fn impl_elementwise_serialize(ast: &syn::DeriveInput) -> TokenStream {
             fn elementwise_serialize(&self, path: &std::path::Path) -> Result<(), std::io::Error> {
                 #(
                     // Construct the filename from the struct field.
-                    let mut filename = stringify!(#field_name_iter).to_string();
-                    filename.push_str(".json");
-                    let mut full_path = path.clone();
-                    let full_path = full_path.join(filename);
+                    let filename = format!("{}.json", stringify!(#field_name_iter));
+                    let full_path = path.join(filename);
 
-                    // Skip Option::None fields (which serde serializes to `null`).
+                    // Skip any field whose value is None (which serde serializes to `null`).
                     let value = &self.#field_name_iter;
                     if serde_json::to_string(&value).unwrap() != "null" {
 
-                        // Check for existing file. Do not overwrite.
+                        // Check for an existing file. Do not overwrite.
                         if !full_path.exists() {
                             let mut filename = stringify!(#field_name_iter).to_string();
                             let writer = std::fs::File::create_new(&full_path)?;

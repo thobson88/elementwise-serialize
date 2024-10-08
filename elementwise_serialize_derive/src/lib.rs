@@ -6,7 +6,7 @@ extern crate quote;
 #[proc_macro_derive(ElementwiseSerialize)]
 pub fn elementwise_serialize_derive(input: TokenStream) -> TokenStream {
     // Construct a representation of Rust code as a syntax tree.
-    let ast = syn::parse(input).unwrap();
+    let ast = syn::parse(input).expect("Rust code should be parseable");
 
     // Build the trait implementation.
     impl_elementwise_serialize(&ast)
@@ -14,8 +14,7 @@ pub fn elementwise_serialize_derive(input: TokenStream) -> TokenStream {
 
 fn impl_elementwise_serialize(ast: &DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let fields = fields(&ast);
-    let field_name_iter = fields.iter().map(|field| &field.ident);
+    let field_name_iter = fields(ast).iter().map(|field| &field.ident);
 
     // Note: field types are accessible but are not useful for determining if an Option type:
     // let field_type_iter = fields.iter().map(|field| &field.ty);
@@ -31,7 +30,7 @@ fn impl_elementwise_serialize(ast: &DeriveInput) -> TokenStream {
 
                     // Skip any field whose value is None (which serde serializes to `null`).
                     let value = &self.#field_name_iter;
-                    if serde_json::to_string(&value).unwrap() != "null" {
+                    if serde_json::to_string(&value)? != "null" {
 
                         // Check for an existing file. Do not overwrite.
                         if !full_path.exists() {
@@ -56,7 +55,7 @@ fn impl_elementwise_serialize(ast: &DeriveInput) -> TokenStream {
 #[proc_macro_derive(ElementwiseDeserialize)]
 pub fn elementwise_deserialize_derive(input: TokenStream) -> TokenStream {
     // Construct a representation of Rust code as a syntax tree.
-    let ast = syn::parse(input).unwrap();
+    let ast = syn::parse(input).expect("Rust code should be parseable");
 
     // Build the trait implementation.
     impl_elementwise_deserialize(&ast)
@@ -64,10 +63,10 @@ pub fn elementwise_deserialize_derive(input: TokenStream) -> TokenStream {
 
 fn impl_elementwise_deserialize(ast: &DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let fields = fields(&ast);
+    let fields = fields(ast);
     let field_name_iter = fields.iter().map(|field| &field.ident);
-    let field_type_iter = fields.iter().map(|field| &field.ty);
     let field_name_iter_clone = field_name_iter.clone();
+    let field_type_iter = fields.iter().map(|field| &field.ty);
 
     let gen = quote! {
         impl<'a> ElementwiseDeserialize<'a> for #name {

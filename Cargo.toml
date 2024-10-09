@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "elementwise_serialize", "elementwise_serialize_derive", "use_elementwise_serialize",
+    "elementwise_serialize", "elementwise_serialize_derive", "use_elementwise_serialize", "tests",
 ]
 resolver = "2"

@@ -32,7 +32,7 @@ fn main() {
     };
 
     // Serialize to the current directory.
-    let path_buf = PathBuf::new();
+    let path_buf = PathBuf::from(".data");
     let _ = attestation.elementwise_serialize(&path_buf);
 
     // Deserialize.
